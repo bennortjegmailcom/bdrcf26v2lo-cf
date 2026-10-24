@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" sizes="32x32" href="https://res.cloudinary.com/dcgkov1em/image/upload/v1791118602/bdrlogo_xilrzb.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="https://res.cloudinary.com/dcgkov1em/image/upload/v1791118602/bdrlogo_xilrzb.png" />
+    <link rel="shortcut icon" href="https://res.cloudinary.com/dcgkov1em/image/upload/v1791118602/bdrlogo_xilrzb.png" />
+    <link rel="apple-touch-icon" href="https://res.cloudinary.com/dcgkov1em/image/upload/v1791118602/bdrlogo_xilrzb.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Breakdown Reporter</title>
+    <meta name="description" content="A web application for reporting and managing work breakdowns between process control and maintenance teams. Streamlines communication, tracks job status, and provides a centralized view for different user roles and work groups." />
+    <meta property="og:title" content="Breakdown Reporter" />
+    <meta property="og:description" content="A web application for reporting and managing work breakdowns between process control and maintenance teams. Streamlines communication, tracks job status, and provides a centralized view for different user roles and work groups." />
+<style>
+  /* Custom Scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(31, 41, 55, 0.5); /* gray-800 mostly */
+    border-radius: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(75, 85, 99, 0.8); /* gray-600 */
+    border-radius: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(107, 114, 128, 0.9); /* gray-500 */
+  }
+  
+  /* Prevent scroll breaking table borders */
+  table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  /* ========================================================
+     Light Mode Overrides (html.light-mode)
+     ======================================================== */
+  html.light-mode body {
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
+  }
+  html.light-mode .bg-gray-900,
+  html.light-mode .bg-slate-900,
+  html.light-mode .bg-gray-950,
+  html.light-mode main,
+  html.light-mode main > div,
+  html.light-mode .bg-slate-50 {
+    background-color: #f8fafc !important;
+  }
+  html.light-mode .bg-gray-800,
+  html.light-mode .bg-slate-800,
+  html.light-mode .bg-gray-850,
+  html.light-mode .bg-gray-900\/50,
+  html.light-mode .bg-gray-900\/60,
+  html.light-mode .bg-gray-900\/80,
+  html.light-mode .bg-gray-800\/50,
+  html.light-mode .bg-gray-800\/80,
+  html.light-mode .bg-slate-100 {
+    background-color: #ffffff !important;
+    color: #1e293b !important;
+  }
+  html.light-mode .border-gray-700,
+  html.light-mode .border-slate-700,
+  html.light-mode .border-gray-800,
+  html.light-mode .border-gray-600,
+  html.light-mode .border-slate-200,
+  html.light-mode .border-slate-300 {
+    border-color: #cbd5e1 !important;
+  }
+  html.light-mode .text-white,
+  html.light-mode .text-gray-100,
+  html.light-mode .text-slate-100,
+  html.light-mode .text-gray-200,
+  html.light-mode .text-slate-200,
+  html.light-mode .text-gray-300,
+  html.light-mode .text-slate-300,
+  html.light-mode h1,
+  html.light-mode h2,
+  html.light-mode h3 {
+    color: #1e293b !important;
+  }
+  html.light-mode .text-gray-400,
+  html.light-mode .text-slate-400 {
+    color: #475569 !important;
+  }
+  html.light-mode .text-gray-500,
+  html.light-mode .text-slate-500 {
+    color: #64748b !important;
+  }
+  html.light-mode input,
+  html.light-mode select,
+  html.light-mode textarea {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid #cbd5e1 !important;
+  }
+  html.light-mode input:focus,
+  html.light-mode select:focus,
+  html.light-mode textarea:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+  }
+  html.light-mode header {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+  }
+  html.light-mode header h1 {
+    color: #0f172a !important;
+  }
+  html.light-mode header p {
+    color: #475569 !important;
+  }
+  html.light-mode header .bg-gray-700,
+  html.light-mode header .bg-gray-700\/50,
+  html.light-mode header .bg-gray-750 {
+    background-color: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+  }
+  html.light-mode header button {
+    color: #475569 !important;
+  }
+  html.light-mode header button.bg-blue-600 {
+    color: #ffffff !important;
+  }
+  html.light-mode .hover\:bg-gray-700\/50:hover,
+  html.light-mode .hover\:bg-gray-800\/50:hover {
+    background-color: #f1f5f9 !important;
+  }
+  /* Modals inside light-mode */
+  html.light-mode .fixed.inset-0.bg-black\/80 {
+    background-color: rgba(15, 23, 42, 0.7) !important;
+  }
+  html.light-mode .fixed .bg-gray-800,
+  html.light-mode .fixed .bg-gray-900 {
+    background-color: #ffffff !important;
+    color: #1e293b !important;
+    border: 1px solid #cbd5e1 !important;
+  }
+  html.light-mode .fixed .text-white {
+    color: #0f172a !important;
+  }
+  html.light-mode .fixed .bg-gray-900 {
+    background-color: #f8fafc !important;
+  }
+
+  /* ========================================================
+     Button & Badge High-Contrast Contrast Fixes
+     ======================================================== */
+  /* 1. Force white text on primary colored backgrounds (buttons, icons, SVGs, badges) */
+  html.light-mode .bg-blue-600,
+  html.light-mode .bg-red-600,
+  html.light-mode .bg-green-600,
+  html.light-mode .bg-rose-600,
+  html.light-mode .bg-purple-600,
+  html.light-mode .bg-indigo-600,
+  html.light-mode .bg-blue-50,
+  html.light-mode .bg-blue-500,
+  html.light-mode .bg-emerald-600,
+  html.light-mode .bg-emerald-500,
+  html.light-mode button.bg-blue-600,
+  html.light-mode button.bg-red-600,
+  html.light-mode button.bg-green-600,
+  html.light-mode button.bg-rose-600,
+  html.light-mode button.bg-purple-600,
+  html.light-mode button.bg-indigo-600,
+  html.light-mode button.bg-blue-500,
+  html.light-mode button.bg-emerald-600,
+  html.light-mode button.bg-emerald-500 {
+    color: #ffffff !important;
+  }
+
+  /* Properly escaped arbitrary Tailwind bracket selectors to prevent browser parser discards */
+  html.light-mode .bg-\[\#0D9488\],
+  html.light-mode .bg-\[\#0d9488\],
+  html.light-mode button.bg-\[\#0D9488\],
+  html.light-mode button.bg-\[\#0d9488\] {
+    background-color: #0d9488 !important;
+    color: #ffffff !important;
+  }
+
+  html.light-mode .bg-\[\#243447\],
+  html.light-mode button.bg-\[\#243447\] {
+    background-color: #2563eb !important; /* Premium bright blue for selected buttons in light mode! */
+    color: #ffffff !important;
+    border-color: #1d4ed8 !important;
+  }
+
+  html.light-mode .bg-blue-600 *,
+  html.light-mode .bg-red-600 *,
+  html.light-mode .bg-green-600 *,
+  html.light-mode .bg-rose-600 *,
+  html.light-mode .bg-purple-600 *,
+  html.light-mode .bg-indigo-600 *,
+  html.light-mode button.bg-blue-600 *,
+  html.light-mode button.bg-red-600 *,
+  html.light-mode button.bg-green-600 *,
+  html.light-mode button.bg-rose-600 *,
+  html.light-mode button.bg-purple-600 *,
+  html.light-mode .bg-\[\#0D9488\] *,
+  html.light-mode .bg-\[\#0d9488\] *,
+  html.light-mode button.bg-\[\#0D9488\] *,
+  html.light-mode button.bg-\[\#0d9488\] *,
+  html.light-mode .bg-\[\#243447\] *,
+  html.light-mode button.bg-\[\#243447\] * {
+    color: #ffffff !important;
+  }
+
+  /* 1.5 Force absolute high-contrast text on Timeline event segments (Meeting Overview View) */
+  html.light-mode .bg-rose-900\/85,
+  html.light-mode .bg-rose-900\/85 *,
+  html.light-mode .bg-amber-900\/90,
+  html.light-mode .bg-amber-900\/90 *,
+  html.light-mode .bg-emerald-900\/90,
+  html.light-mode .bg-emerald-900\/90 * {
+    color: #ffffff !important;
+    font-weight: 800 !important;
+  }
+
+  /* 2. Force dark text on yellow/amber colored backgrounds (pills and status highlights) */
+  html.light-mode .bg-yellow-500,
+  html.light-mode .bg-amber-500,
+  html.light-mode button.bg-yellow-500,
+  html.light-mode button.bg-amber-500 {
+    color: #0f172a !important;
+  }
+  html.light-mode .bg-yellow-500 *,
+  html.light-mode .bg-amber-500 *,
+  html.light-mode button.bg-yellow-500 *,
+  html.light-mode button.bg-amber-500 * {
+    color: #0f172a !important;
+  }
+
+  /* 3. Style secondary/generic gray or slate buttons cleanly as light gray buttons with dark text */
+  html.light-mode button.bg-gray-700,
+  html.light-mode button.bg-slate-700,
+  html.light-mode button.bg-gray-800,
+  html.light-mode button.bg-slate-800,
+  html.light-mode button.bg-gray-900,
+  html.light-mode button.bg-slate-900,
+  html.light-mode .bg-gray-700,
+  html.light-mode .bg-slate-700 {
+    background-color: #cbd5e1 !important; /* slate-300 */
+    color: #0f172a !important; /* dark slate-900 */
+    border: 1px solid #94a3b8 !important; /* slate-400 */
+    font-weight: bold !important;
+  }
+  html.light-mode button.bg-\[\#33475B\],
+  html.light-mode .bg-\[\#33475B\] {
+    background-color: #cbd5e1 !important;
+    color: #0f172a !important;
+    border: 1px solid #94a3b8 !important;
+    font-weight: bold !important;
+  }
+  html.light-mode button.bg-gray-700 *,
+  html.light-mode button.bg-slate-700 *,
+  html.light-mode button.bg-gray-800 *,
+  html.light-mode button.bg-slate-800 *,
+  html.light-mode button.bg-gray-900 *,
+  html.light-mode button.bg-\[\#33475B\] *,
+  html.light-mode .bg-gray-700 *,
+  html.light-mode .bg-slate-700 * {
+    color: #0f172a !important;
+  }
+
+  /* Clean up header buttons */
+  html.light-mode header button.bg-blue-600 {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+  }
+  html.light-mode header button.bg-blue-600 * {
+    color: #ffffff !important;
+  }
+
+  /* ========================================================
+     Vibrant High-Contrast Next Shift Handover Highlights
+     ======================================================== */
+  /* --- Dark Mode (Default) --- */
+  .handover-highlight-purple {
+    background-color: #581c87 !important; /* purple-900 */
+    color: #f5f3ff !important;
+    border-left: 5px solid #c084fc !important; /* purple-400 */
+    font-weight: 600 !important;
+  }
+  .handover-highlight-red {
+    background-color: #7f1d1d !important; /* red-900 */
+    color: #fef2f2 !important;
+    border-left: 5px solid #f87171 !important; /* red-400 */
+    font-weight: 600 !important;
+  }
+  .handover-highlight-orange {
+    background-color: #7c2d12 !important; /* orange-900 */
+    color: #fff7ed !important;
+    border-left: 5px solid #fb923c !important; /* orange-400 */
+    font-weight: 600 !important;
+  }
+  .handover-highlight-green {
+    background-color: #064e3b !important; /* green-900 */
+    color: #f0fdf4 !important;
+    border-left: 5px solid #4ade80 !important; /* green-400 */
+    font-weight: 600 !important;
+  }
+
+  /* --- Light Mode Overrides --- */
+  html.light-mode .handover-highlight-purple {
+    background-color: #f3e8ff !important; /* purple-100 */
+    color: #581c87 !important;
+    border-left: 5px solid #a855f7 !important; /* purple-500 */
+    font-weight: 600 !important;
+  }
+  html.light-mode .handover-highlight-red {
+    background-color: #fee2e2 !important; /* red-100 */
+    color: #991b1b !important;
+    border-left: 5px solid #ef4444 !important; /* red-500 */
+    font-weight: 600 !important;
+  }
+  html.light-mode .handover-highlight-orange {
+    background-color: #ffedd5 !important; /* orange-100 */
+    color: #9a3412 !important;
+    border-left: 5px solid #f97316 !important; /* orange-500 */
+    font-weight: 600 !important;
+  }
+  html.light-mode .handover-highlight-green {
+    background-color: #d1fae5 !important; /* green-100 */
+    color: #064e3b !important;
+    border-left: 5px solid #10b981 !important; /* green-500 */
+    font-weight: 600 !important;
+  }
+
+  /* Table Header Contrast in Light Mode */
+  html.light-mode thead,
+  html.light-mode thead tr,
+  html.light-mode thead th {
+    background-color: #cbd5e1 !important; /* slate-300 background */
+    color: #0f172a !important; /* high-contrast dark slate-900 */
+    border-color: #94a3b8 !important;
+  }
+  html.light-mode thead th *,
+  html.light-mode thead th div {
+    color: #0f172a !important;
+  }
+</style>
+<script>
+  (function() {
+    const saved = localStorage.getItem('app-theme') || 'dark';
+    if (saved === 'light') {
+      document.documentElement.classList.add('light-mode');
+    }
+  })();
+</script>
+</head>
+  <body class="bg-gray-900 text-gray-100">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

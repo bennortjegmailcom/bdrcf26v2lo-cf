@@ -1,0 +1,484 @@
+openapi: 3.0.3
+info:
+  title: Breakdown Reporter (BDR) API v1
+  description: Authoritative REST API service for BDR Web, BDR Desktop, and BDR Mobile clients. Provides lockout transitions, audit records, and offline sync. See README.md for implementation limitations.
+  version: 1.0.0
+servers:
+  - url: /api/v1
+    description: Production Environment
+paths:
+  /health:
+    get:
+      summary: Health Check
+      description: Returns service status and timezone timestamp.
+      responses:
+        '200':
+          description: Service is healthy.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: UP
+                  timestamp:
+                    type: string
+                    format: date-time
+                  service:
+                    type: string
+                    example: BDR API v1
+
+  /me:
+    get:
+      summary: Authenticated User Profile
+      description: Returns the corresponding BDR user profile loaded from the database based on the verified Cloudflare Access identity.
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile details.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/401Unauthenticated'
+
+  /reports:
+    get:
+      summary: List Breakdown Reports
+      description: Lists breakdown reports reported within the preceding hour window.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: hours
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 72
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1000
+      responses:
+        '200':
+          description: Array of reports.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BreakdownReport'
+        '401':
+          $ref: '#/components/responses/401Unauthenticated'
+    post:
+      summary: Create Breakdown Report
+      description: Registers a new active breakdown report. Authoritative reporter claims are injected server-side.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReportPayload'
+      responses:
+        '201':
+          description: Report created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/BreakdownReport'
+
+  /reports/{id}:
+    get:
+      summary: Get Breakdown Report
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Report details.
+        '404':
+          $ref: '#/components/responses/404NotFound'
+    patch:
+      summary: Update Breakdown Report
+      description: Mutates whitelisted fields and appends audit logs inside the changeLog array.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateReportPayload'
+      responses:
+        '200':
+          description: Report updated successfully.
+
+  /lockouts:
+    get:
+      summary: List Lockout Tickets
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Lockouts list.
+    post:
+      summary: Initiate Lockout Request
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLockoutPayload'
+      responses:
+        '201':
+          description: Lockout requested.
+
+  /lockouts/{id}/confirm-equipment:
+    post:
+      summary: Step 2 - Confirm Equipment QR Tag
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                employeeNumber:
+                  type: string
+                qrVerified:
+                  type: boolean
+                scannedQrCode:
+                  type: string
+      responses:
+        '200':
+          description: Equipment confirmed successfully.
+        '409':
+          $ref: '#/components/responses/409Conflict'
+
+  /lockouts/{id}/confirm-scada-stop:
+    post:
+      summary: Step 3 - Confirm SCADA Stop
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                employeeNumber:
+                  type: string
+                comments:
+                  type: string
+      responses:
+        '200':
+          description: SCADA stop confirmed.
+
+  /lockouts/{id}/confirm-physical-lockout:
+    post:
+      summary: Step 4 - Confirm Physical Lockout Isolation
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                employeeNumber:
+                  type: string
+                comments:
+                  type: string
+                isolationPoints:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Lockout is active.
+
+  /lockouts/{id}/positive-test:
+    post:
+      summary: Step 5 - Record Positive Test
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                employeeNumber:
+                  type: string
+                result:
+                  type: string
+                  enum: [PASS, FAIL]
+                comments:
+                  type: string
+      responses:
+        '200':
+          description: Test recorded.
+
+  /lockouts/{id}/request-release:
+    post:
+      summary: Step 6 - Request Release
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                employeeNumber:
+                  type: string
+                comments:
+                  type: string
+      responses:
+        '200':
+          description: Release request recorded.
+
+  /lockouts/{id}/confirm-release:
+    post:
+      summary: Step 7 - Final Release & Clearance
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                employeeNumber:
+                  type: string
+                comments:
+                  type: string
+      responses:
+        '200':
+          description: Lockout released completely.
+
+  /lockouts/{id}/reject:
+    post:
+      summary: Reject Lockout Request
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                employeeNumber:
+                  type: string
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Lockout rejected.
+
+  /sync:
+    post:
+      summary: Offline Batch Sync
+      description: Allows batch operations containing unique client operationIds. Guarantees idempotency.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyncPayload'
+      responses:
+        '200':
+          description: Sync execution summary.
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Cloudflare Access JWT, also accepted via Cf-Access-Jwt-Assertion on Access-protected requests.
+  responses:
+    401Unauthenticated:
+      description: Missing or invalid token credentials.
+    404NotFound:
+      description: Resource was not found.
+    409Conflict:
+      description: Out-of-order state machine transition.
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+        employeeNumber:
+          type: string
+    BreakdownReport:
+      type: object
+      properties:
+        id:
+          type: string
+        equipment:
+          type: string
+        equipmentNumber:
+          type: string
+        reportedFault:
+          type: string
+        urgency:
+          type: integer
+        status:
+          type: string
+        reportingTime:
+          type: string
+    CreateReportPayload:
+      type: object
+      required:
+        - equipment
+        - equipmentNumber
+        - reportedFault
+        - urgency
+        - workGroup
+      properties:
+        equipment:
+          type: string
+        equipmentNumber:
+          type: string
+        reportedFault:
+          type: string
+        urgency:
+          type: integer
+        workGroup:
+          type: string
+        details:
+          type: string
+    UpdateReportPayload:
+      type: object
+      properties:
+        details:
+          type: string
+        status:
+          type: string
+    CreateLockoutPayload:
+      type: object
+      required:
+        - equipment
+        - equipmentNumber
+        - workGroup
+      properties:
+        equipment:
+          type: string
+        equipmentNumber:
+          type: string
+        workGroup:
+          type: string
+        lockoutComments:
+          type: string
+        bookedDurationMinutes:
+          type: integer
+    SyncPayload:
+      type: object
+      required:
+        - operations
+      properties:
+        operations:
+          type: array
+          items:
+            type: object
+            required:
+              - operationId
+              - type
+              - payload
+            properties:
+              operationId:
+                type: string
+              type:
+                type: string
+                enum: [CREATE_REPORT, REQUEST_LOCKOUT]
+              payload:
+                type: object

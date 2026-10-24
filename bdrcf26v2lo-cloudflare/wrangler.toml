@@ -1,0 +1,48 @@
+name = "bdrcloudinary"
+main = "src/worker.ts"
+compatibility_date = "2026-09-14"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./dist"
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/*"]
+
+[observability]
+enabled = true
+[observability.traces]
+enabled = true
+
+[env.staging]
+name = "bdrcloudinary-staging"
+workers_dev = false
+
+[env.staging.vars]
+CF_ACCESS_TEAM_DOMAIN = "https://YOUR-TEAM.cloudflareaccess.com"
+CF_ACCESS_AUD = "STAGING-ACCESS-AUD"
+BOOTSTRAP_ADMIN_EMAILS = ""
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "bdrcf-staging"
+# Replace with the separate staging D1 ID before any remote command.
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"
+
+[env.production]
+name = "bdrcloudinary-production"
+workers_dev = false
+
+[env.production.vars]
+CF_ACCESS_TEAM_DOMAIN = "https://YOUR-TEAM.cloudflareaccess.com"
+CF_ACCESS_AUD = "PRODUCTION-ACCESS-AUD"
+BOOTSTRAP_ADMIN_EMAILS = ""
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "bdrcf"
+# Historical ID supplied with the source; verify its account and target before migration.
+database_id = "5248bfcc-0a1a-47bc-9a26-fc8bafea2de9"
+migrations_dir = "migrations"
+
+# No R2 binding is required until attachment upload routes are implemented.

@@ -1,0 +1,3 @@
+CF_ACCESS_TEAM_DOMAIN="https://YOUR-TEAM.cloudflareaccess.com"
+CF_ACCESS_AUD="YOUR-ACCESS-APPLICATION-AUD"
+BOOTSTRAP_ADMIN_EMAILS="your-email@example.com"
